@@ -13,6 +13,11 @@
       }
     }
   },
+  "applications": {
+    "gecko": {
+	  "id": "passwordmakerpro@yb171.org"
+    }
+  },
   "description": "Flexible password generator using a cryptographic hash algorithm of your choice - Fully Compatible with PasswordMaker.org",
   "homepage_url": "https://github.com/passwordmaker/chrome-passwordmaker",
   "icons": {
@@ -22,8 +27,9 @@
   },
   "manifest_version": 2,
   "name": "PasswordMaker Pro",
-  "offline_enabled": true,
-  "options_page": "html/options.html",
+  "options_ui": { 
+	"page": "html/options.html"
+  },
   "permissions": ["activeTab", "storage", "alarms"],
   "version": "0.8.5"
 }

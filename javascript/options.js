@@ -150,11 +150,11 @@ function copyRdfExport() {
 }
 
 function showOptions() {
-    chrome.storage.sync.getBytesInUse(null, function(bytes) {
-        if (bytes > 0) {
-            Settings.syncDataAvailable = true;
-        }
-    });
+    //chrome.storage.sync.getBytesInUse(null, function(bytes) {
+    //    if (bytes > 0) {
+    //        Settings.syncDataAvailable = true;
+    //    }
+    //});
 
     $("#store_location").val(Settings.storeLocation);
     $("#expirePasswordMinutes").val(localStorage.getItem("expire_password_minutes") || 5);

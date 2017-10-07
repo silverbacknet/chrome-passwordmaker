@@ -15,6 +15,9 @@ This extension fixes that.  This is a native Chrome port with all the bells and 
 ###Opera
   - You can install this extension from the [Opera Extension Gallery](https://addons.opera.com/en/extensions/details/passwordmaker-pro/)
 
+###Firefox
+  - You can install this extension from the 
+
 If you have previously used the Firefox Extension, you can directly import your .rdf file.
 
 # Status of this project

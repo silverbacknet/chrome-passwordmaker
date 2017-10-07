@@ -1,3 +1,9 @@
+0.8.5.1 - 2017-10-07
+
+* Changes to manifest.json and options to make compatible with firefox
+* Updated jQuery and QUnit
+
+
 0.8.5 - 2016-08-25
 
 * Addresses issue #156 and #153

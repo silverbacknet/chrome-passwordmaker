@@ -150,13 +150,16 @@ function copyRdfExport() {
 }
 
 function showOptions() {
-    if (chrome.storage.sync && chrome.storage.sync.getBytesInUse) {
-      chrome.storage.sync.getBytesInUse(null, function(bytes) {
-          if (bytes > 0) {
-              Settings.syncDataAvailable = true;
-          }
-      });
-    }
+    var setPromise = storage.sync.set({"testValue": 1});
+    setPromise.then(
+        //can write to sync storage
+        function() {
+            Settings.syncDataAvailable = true;
+        },
+        //cannot write to sync storage
+        function() {
+            Settings.syncDataAvailable = false;
+    });
 
     $("#store_location").val(Settings.storeLocation);
     $("#expirePasswordMinutes").val(localStorage.getItem("expire_password_minutes") || 5);
@@ -265,8 +268,8 @@ function setSyncPassword() {
 }
 
 function clearSyncData() {
-    chrome.storage.sync.clear(function() {
-        if (chrome.runtime.lastError === undefined) {
+    browser.storage.sync.clear(function() {
+        if (browser.runtime.lastError === undefined) {
             localStorage.setItem("sync_profiles", "false");
             Settings.syncDataAvailable = false;
             localStorage.removeItem("synced_profiles");
@@ -276,7 +279,7 @@ function clearSyncData() {
             updateSyncProfiles();
             updateProfileList();
         } else {
-            alert("Could not delete synced data: " + chrome.runtime.lastError);
+            alert("Could not delete synced data: " + browser.runtime.lastError);
         }
     });
 }
@@ -384,7 +387,7 @@ function updateExpireRow() {
             Settings.createExpirePasswordAlarm(newExpireTime);
         }
     } else {
-        chrome.alarms.clear("expire_password");
+        browser.alarms.clear("expire_password");
     }
     updateStyle($("#password_expire_row"), "hidden", !shouldExpire);
 }

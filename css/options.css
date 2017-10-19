@@ -215,10 +215,6 @@ meter {
     margin-bottom: 6px;
 }
 
-#general_settings .subrow {
-    white-space: nowrap;
-}
-
 label {
     margin-top: 3px;
     position: absolute;

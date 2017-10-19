@@ -150,13 +150,17 @@ function copyRdfExport() {
 }
 
 function showOptions() {
-    var setPromise = storage.sync.set({"testValue": 1});
+    var setPromise = browser.storage.sync.get();
     setPromise.then(
-        //can write to sync storage
-        function() {
-            Settings.syncDataAvailable = true;
+        //something in sync data
+        function(data) {
+            if(data){
+                Settings.syncDataAvailable = true;
+            } else {
+                Settings.syncDataAvailable = false;
+            }
         },
-        //cannot write to sync storage
+        //error accessing sync data
         function() {
             Settings.syncDataAvailable = false;
     });
@@ -268,8 +272,11 @@ function setSyncPassword() {
 }
 
 function clearSyncData() {
-    browser.storage.sync.clear(function() {
-        if (browser.runtime.lastError === undefined) {
+    var clearPromise = browser.storage.sync.clear()
+
+    clearPromise.then(
+        //success clearing sync
+        function() {
             localStorage.setItem("sync_profiles", "false");
             Settings.syncDataAvailable = false;
             localStorage.removeItem("synced_profiles");
@@ -278,10 +285,12 @@ function clearSyncData() {
             Settings.loadLocalProfiles();
             updateSyncProfiles();
             updateProfileList();
-        } else {
+        },
+        //error clearing sync
+        function() {
             alert("Could not delete synced data: " + browser.runtime.lastError);
         }
-    });
+    );
 }
 
 function updateSyncProfiles() {

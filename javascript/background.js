@@ -15,16 +15,16 @@ function updateSyncedProfiles(data) {
     localStorage.setItem("synced_profiles", data.synced_profiles);
 }
 
-chrome.storage.sync.get(null, function(data) {
-    if (chrome.runtime.lastError === undefined) {
-        updateSyncedProfiles(data);
-        if (data.sync_profiles_password !== undefined) {
-            localStorage.setItem("sync_profiles_password", data.sync_profiles_password);
-        }
+var getPromise = browser.storage.sync.get();
+
+getPromise.then(function(data) {
+    updateSyncedProfiles(data);
+    if (data.sync_profiles_password !== undefined) {
+        localStorage.setItem("sync_profiles_password", data.sync_profiles_password);
     }
 });
 
-chrome.storage.onChanged.addListener(function(changes, namespace) {
+browser.storage.onChanged.addListener(function(changes, namespace) {
     if (namespace !== "sync") {
         return;
     }
@@ -46,4 +46,4 @@ function handleAlarm(alarm) {
     }
 }
 
-chrome.alarms.onAlarm.addListener(handleAlarm);
+browser.alarms.onAlarm.addListener(handleAlarm);

@@ -229,7 +229,7 @@ function saveProfile() {
     updateProfileList();
     highlightProfile();
     setTimeout(function() {
-        oldHashWarning(selected.hashAlgorithm);
+        hashWarning(selected.hashAlgorithm);
     }, 0);
 }
 

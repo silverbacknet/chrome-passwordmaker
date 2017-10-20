@@ -88,34 +88,14 @@ Settings.loadProfiles = function() {
 
 Settings.saveSyncedProfiles = function(data) {
     var oldKeys = localStorage.getItem("synced_profiles_keys");
-    var threshold = Math.round(chrome.storage.sync.QUOTA_BYTES_PER_ITEM * 0.9);
     var output = {};
 
-    if (data.length <= threshold) {
-        output.synced_profiles = data;
-        chrome.storage.sync.set(output, function() {
-            if (chrome.runtime.lastError !== undefined) {
-                alert("Could not sync data : " + chrome.runtime.lastError);
-            }
-        });
-    } else {
-        var splitter = new RegExp("[\\s\\S]{1," + threshold + "}", "g");
-        var parts = data.match(splitter);
-        var date = Date.now();
-        var keys = [];
-        for (var i = 0; i < parts.length; ++i) {
-            output[date + i] = parts[i];
-            keys[i] = date + i;
-        }
-        output.synced_profiles = keys;
-        chrome.storage.sync.set(output, function() {
-            if (chrome.runtime.lastError === undefined) {
-                chrome.storage.sync.remove(oldKeys.split(","));
-            } else {
-                alert("Could not sync large profile data : " + chrome.runtime.lastError);
-            }
-        });
-    }
+    output.synced_profiles = data;
+    var setPromise = browser.storage.sync.set(output);
+    
+    setPromise.then(null, function() {
+        alert("Could not sync data : " + browser.runtime.lastError);
+    });
 };
 
 Settings.saveProfiles = function() {
@@ -144,7 +124,9 @@ Settings.setStoreLocation = function(store) {
 };
 
 Settings.setBgPassword = function(pw) {
-    chrome.runtime.getBackgroundPage(function(bg) {
+    var backgroundPromise = browser.runtime.getBackgroundPage();
+    
+    backgroundPromise.then(function(bg) {
         bg.password = pw;
     });
 
@@ -154,7 +136,7 @@ Settings.setBgPassword = function(pw) {
 };
 
 Settings.createExpirePasswordAlarm = function() {
-    chrome.alarms.create("expire_password", {
+    browser.alarms.create("expire_password", {
         delayInMinutes: parseInt(localStorage.getItem("expire_password_minutes"), 10)
     });
 };

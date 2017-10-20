@@ -122,7 +122,7 @@ function showButtons() {
     $("#copypassword").removeClass("hidden");
     // Don't run executeScript() on built-in chrome:// pages since it isn't allowed anyway
     if (!(/^chrome|^opera/i).test(Settings.currentUrl)) {
-        chrome.tabs.executeScript({
+        var scriptPromise = browser.tabs.executeScript({
             "allFrames": true,
             "code": "var fields = document.getElementsByTagName('input'), fieldCount = 0;" +
                     "for (var i = 0; i < fields.length; i++) {" +
@@ -131,7 +131,9 @@ function showButtons() {
                         "}" +
                     "}" +
                     "fieldCount;"
-        }, function(fieldCounts) {
+        });
+        
+        scriptPromise.then( function(fieldCounts) {
             for (var frame = 0; frame < fieldCounts.length; frame++) {
                 if (fieldCounts[frame] > 0) {
                     $("#injectpassword").removeClass("hidden");
@@ -144,7 +146,7 @@ function showButtons() {
 function fillFields() {
     updateFields();
     if (!(/^chrome|^opera/i).test(Settings.currentUrl)) {
-        chrome.tabs.executeScript({
+        var scriptPromise = browser.tabs.executeScript({
             "allFrames": true,
             // base-64 encode & decode password, string concatenation of a pasword that includes quotes here won't work
             "code": "var fields = document.getElementsByTagName('input');" +
@@ -176,7 +178,9 @@ function fillFields() {
                             "}" +
                         "}" +
                     "}"
-        }, function() {
+        });
+        
+        scriptPromise.then(function() {
             window.close();
         });
     }
@@ -184,7 +188,7 @@ function fillFields() {
 
 function copyPassword() {
     updateFields();
-    chrome.tabs.query({ "windowType": "popup" }, function() {
+    browser.tabs.query({ "windowType": "popup" }, function() {
         $("#activatePassword").hide();
         $("#generated").show().get(0).select();
         document.execCommand("copy");
@@ -193,7 +197,7 @@ function copyPassword() {
 }
 
 function openOptions() {
-    chrome.tabs.create({ "url": chrome.runtime.getURL("html/options.html") }, function() {
+    browser.tabs.create({ "url": browser.runtime.getURL("html/options.html") }, function() {
         window.close();
     });
 }
@@ -232,7 +236,7 @@ function handleKeyPress(event) {
 }
 
 function init() {
-    chrome.runtime.getBackgroundPage(function(bg) {
+    browser.runtime.getBackgroundPage(function(bg) {
         var pass = Settings.getPassword(bg.password);
 
         $("#password").val(pass);
@@ -292,7 +296,9 @@ document.addEventListener("DOMContentLoaded", function() {
         $("#strength_row").hide();
     }
 
-    chrome.tabs.query({ "active": true, "currentWindow": true, "windowType": "normal" }, function(tabs) {
+    var tabPromise = browser.tabs.query({ "active": true, "currentWindow": true, "windowType": "normal" });
+    
+    tabPromise.then( function(tabs) {
         Settings.currentUrl = tabs[0].url || "";
         init();
     });

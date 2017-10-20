@@ -418,10 +418,11 @@ function fileExport() {
     var textFileAsBlob = new Blob([$("#exportText").val()], {
         type: "application/rdf+xml"
     });
-    var downloadLink = document.createElement("a");
-    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-    downloadLink.download = "PasswordMaker Pro Profile Data.rdf";
-    downloadLink.click();
+    var downloadPromise = browser.downloads.download({
+        url: window.URL.createObjectURL(textFileAsBlob),
+        filename: "PasswordMaker Pro Profile Data.rdf",
+        conflictAction : 'uniquify'
+    });
 }
 
 function showStrengthSection() {

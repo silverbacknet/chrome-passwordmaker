@@ -1,3 +1,7 @@
+0.8.5.2 - 2017-10-24
+
+* Synchronization on firefox and bugfixes contributed by bob0the0mighty
+
 0.8.5.1 - 2017-10-07
 
 * Changes to manifest.json and options to make compatible with firefox

@@ -16,11 +16,14 @@ This extension fixes that.  This is a native Chrome port with all the bells and 
   - You can install this extension from the [Opera Extension Gallery](https://addons.opera.com/en/extensions/details/passwordmaker-pro/)
 
 ###Firefox
-  - You can install this extension from the 
+  - You can install this extension from the [Mozilla addon repository](https://addons.mozilla.org/en-US/firefox/addon/firefox-passwordmaker-pro/)
+    It is tested on the stable release 48.0 and the nightly build 58.0
 
 If you have previously used the Firefox Extension, you can directly import your .rdf file.
 
 # Status of this project
+
+## 2017-10-06 The port of the Chrome extension to Firefox is maintained by [yb171](https://github.com/yb171/chrome-passwordmaker).
 
 ## Update 2014-07-13 by [@heavensrevenge](https://github.com/heavensrevenge)
 

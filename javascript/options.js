@@ -36,9 +36,8 @@ function removeProfile() {
 
 function removeAllProfiles() {
     if (confirm("Really delete ALL local profile customizations and reset to the default profiles?")) {
-        localStorage.removeItem("profiles");
-        Settings.loadLocalProfiles();
-        updateProfileList();
+        browser.storage.local.remove("profiles");
+        Settings.loadLocalProfiles(function(){updateProfileList();});
     }
 }
 
@@ -166,7 +165,7 @@ function showOptions() {
     });
 
     $("#store_location").val(Settings.storeLocation);
-    $("#expirePasswordMinutes").val(localStorage.getItem("expire_password_minutes") || 5);
+    $("#expirePasswordMinutes").val(Settings.expire_password_minutes || 5);
     updateStyle($("#master_password_row"), "hidden", !Settings.keepMasterPasswordHash());
     updateExpireRow();
     updateSyncProfiles();
@@ -247,6 +246,7 @@ function editProfile(event) {
 
 function updateProfileList() {
     $("#profile_list").empty();
+    console.log(`Number profiles: ${Settings.profiles.length}`)
     for (var i = 0; i < Settings.profiles.length; i++) {
         $("#profile_list").append("<li><span id='profile_" + Settings.profiles[i].id + "' class='link'>" + Settings.profiles[i].title + "</span></li>");
     }
@@ -260,8 +260,10 @@ function setSyncPassword() {
 
     var result = Settings.startSyncWith($("#syncProfilesPassword").val());
     if (result) {
-        localStorage.setItem("sync_profiles", "true");
-        localStorage.setItem("sync_profiles_password", result);
+        Settings.sync_profiles = true;
+        browser.storage.local.set({sync_profiles: true});
+        Settings.sync_profiles_password = result;
+        browser.storage.local.set({sync_profiles_password: result});
         Settings.syncDataAvailable = true;
         $("#syncProfilesPassword").val("");
         updateSyncProfiles();
@@ -277,14 +279,15 @@ function clearSyncData() {
     clearPromise.then(
         //success clearing sync
         function() {
-            localStorage.setItem("sync_profiles", "false");
+            Settings.sync_profiles = false;
             Settings.syncDataAvailable = false;
-            localStorage.removeItem("synced_profiles");
-            localStorage.removeItem("synced_profiles_keys");
-            localStorage.removeItem("sync_profiles_password");
-            Settings.loadLocalProfiles();
-            updateSyncProfiles();
-            updateProfileList();
+            browser.storage.local.remove("synced_profiles");
+            browser.storage.local.remove("synced_profiles_keys")
+            browser.storage.local.remove("sync_profiles_password");
+            Settings.loadLocalProfiles(function(){
+              updateSyncProfiles();
+              updateProfileList();            
+            });
         },
         //error clearing sync
         function() {
@@ -319,48 +322,58 @@ function updateMasterHash() {
         $("#master_password_row").removeClass("hidden");
         var master_pass = $("#masterPassword").val();
         if (master_pass.length > 0) {
-            localStorage.setItem("keep_master_password_hash", "true");
-            localStorage.setItem("master_password_hash", JSON.stringify(Settings.make_pbkdf2(master_pass)));
+            browser.storage.local.set({keep_master_password_hash: true, master_password_hash: JSON.stringify(Settings.make_pbkdf2(master_pass))});
+            Settings.keep_master_password_hash = true;
+            Settings.master_password_hash = JSON.stringify(Settings.make_pbkdf2(master_pass))
         } else {
-            localStorage.setItem("keep_master_password_hash", "false");
-            localStorage.removeItem("master_password_hash");
+            browser.storage.local.set({keep_master_password_hash: false});
+            browser.storage.local.remove("master_password_hash")
+            Settings.keep_master_password_hash = false;
+            Settings.master_password_hash = "";
         }
     } else {
         $("#master_password_row").addClass("hidden");
         $("#masterPassword").val("");
-        localStorage.setItem("keep_master_password_hash", "false");
-        localStorage.removeItem("master_password_hash");
+        Settings.keep_master_password_hash = false;
+        browser.storage.local.set({keep_master_password_hash: false});
+        Settings.master_password_hash = "";
+        browser.storage.local.remove("master_password_hash")
     }
 }
 
 function updateDisablePasswordSaving() {
     var should_disable = $("#disablePasswordSaving").prop("checked");
-    localStorage.setItem("disable_password_saving", should_disable);
+    Settings.disable_password_saving = should_disable;
+    browser.storage.local.set({disable_password_saving: should_disable})
     if (should_disable) {
-        localStorage.setItem("store_location", "never");
-        localStorage.removeItem("password_crypt");
+        Settings.store_location = "never";
+        browser.storage.local.set({store_location: "never"})
+        Settings.password_crypt = "";
+        browser.storage.local.remove("password_crypt");
         Settings.setBgPassword("");
     }
 }
 
 function updateHidePassword() {
-    localStorage.setItem("show_generated_password", $("#hidePassword").prop("checked"));
+    Settings.show_generated_password = $("#hidePassword").prop("checked");
+    browser.storage.local.set({show_generated_password: $("#hidePassword").prop("checked")});
 }
 
 function updateUseVerificationCode() {
-    localStorage.setItem("use_verification_code", $("#useVerificationCode").prop("checked"));
+    browser.storage.local.set({use_verification_code: $("#useVerificationCode").prop("checked")});
+    Settings.use_verification_code = $("#useVerificationCode").prop("checked");
 }
 
 function updatefillUsername() {
-    localStorage.setItem("fill_username", $("#fillUsername").prop("checked"));
+    browser.storage.local.set({fill_username: $("#fillUsername").prop("checked") });
 }
 
 function updateHideStoreLocation() {
-    localStorage.setItem("hide_storage_location", $("#hideStorageLocation").prop("checked"));
+    browser.storage.local.set({hide_storage_location: $("#hideStorageLocation").prop("checked")});
 }
 
 function updateShowStrength() {
-    localStorage.setItem("show_password_strength", $("#showPasswordStrength").prop("checked"));
+    browser.storage.local.set({show_password_strength: $("#showPasswordStrength").prop("checked")});
 }
 
 function sanitizePasswordLength() {
@@ -387,13 +400,14 @@ function sanitizeExpireTime(newExpireTime) {
 
 function updateExpireRow() {
     var shouldExpire = Settings.storeLocation === "memory_expire";
-    var oldExpireTime = localStorage.getItem("expire_password_minutes") || 5;
+    var oldExpireTime = Settings.expire_password_minutes || 5;
     var newExpireTime = $("#expirePasswordMinutes").val();
     if (shouldExpire) {
         newExpireTime = sanitizeExpireTime(newExpireTime);
         if (newExpireTime !== oldExpireTime) {
-        	localStorage.setItem("expire_password_minutes", newExpireTime);
-            Settings.createExpirePasswordAlarm(newExpireTime);
+          browser.storage.local.set({expire_password_minutes: newExpireTime});
+        	Settings.expire_password_minutes = newExpireTime;
+          Settings.createExpirePasswordAlarm(newExpireTime);
         }
     } else {
         browser.alarms.clear("expire_password");
@@ -478,9 +492,9 @@ function checkPassStrength() {
     $("#hasSymbol").prop("checked", values.hasSymbol);
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    Settings.loadProfiles();
+function thisbottomHalf() {
     updateProfileList();
+    console.log(`Listener Profiles: ${Settings.profiles}`);
     setCurrentProfile(Settings.profiles[0]);
 
     $("#hidePassword").prop("checked", Settings.shouldHidePassword());
@@ -530,4 +544,9 @@ document.addEventListener("DOMContentLoaded", function() {
     $("#set_sync_password").on("click", setSyncPassword);
     $("#clear_sync_data").on("click", clearSyncData);
     $("#resetToDefaultprofiles").on("click", removeAllProfiles);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  console.log(`options: Profile number ${Settings.profiles.length}`);
+    Settings.loadProfiles(thisbottomHalf);
 });

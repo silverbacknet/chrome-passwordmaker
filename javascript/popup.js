@@ -76,7 +76,7 @@ function delayedUpdate() {
 
 function matchesMasterHash(password) {
     if (Settings.keepMasterPasswordHash()) {
-        var saved = JSON.parse(localStorage.getItem("master_password_hash"));
+        var saved = JSON.parse(Settings.master_password_hash);
         var derived = Settings.make_pbkdf2(password, saved.salt, saved.iter);
         return derived.hash === saved.hash;
     } else {
@@ -132,7 +132,7 @@ function showButtons() {
                     "}" +
                     "fieldCount;"
         });
-        
+
         scriptPromise.then( function(fieldCounts) {
             for (var frame = 0; frame < fieldCounts.length; frame++) {
                 if (fieldCounts[frame] > 0) {
@@ -179,7 +179,7 @@ function fillFields() {
                         "}" +
                     "}"
         });
-        
+
         scriptPromise.then(function() {
             window.close();
         });
@@ -260,48 +260,50 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    Settings.loadProfiles();
-    $("#password, #confirmation").on("keyup", Settings.setPassword);
-    $("input").on("input", delayedUpdate);
-    $("#store_location").on("change", updateStoreLocation);
-    $("#profile").on("change", onProfileChanged);
-    $("#activatePassword").on("click", showPasswordField);
-    $("#copypassword").on("click", copyPassword);
-    $("#injectpassword").on("click", fillFields);
-    $("#options").on("click", openOptions);
+    console.log(`popup: Profile number ${Settings.profiles.length}`);
+    Settings.loadProfiles(function() {
+          $("#password, #confirmation").on("keyup", Settings.setPassword);
+          $("input").on("input", delayedUpdate);
+          $("#store_location").on("change", updateStoreLocation);
+          $("#profile").on("change", onProfileChanged);
+          $("#activatePassword").on("click", showPasswordField);
+          $("#copypassword").on("click", copyPassword);
+          $("#injectpassword").on("click", fillFields);
+          $("#options").on("click", openOptions);
 
-    if (Settings.shouldDisablePasswordSaving() || Settings.hideStoreLocationInPopup()) {
-        $("#store_location_row").hide();
-    }
+          if (Settings.shouldDisablePasswordSaving() || Settings.hideStoreLocationInPopup()) {
+              $("#store_location_row").hide();
+          }
 
-    if (Settings.shouldHidePassword()) {
-        $("#generated, #strength_row").hide();
-    } else {
-        $("#activatePassword").hide();
-    }
+          if (Settings.shouldHidePassword()) {
+              $("#generated, #strength_row").hide();
+          } else {
+              $("#activatePassword").hide();
+          }
 
-    if (Settings.keepMasterPasswordHash() || Settings.useVerificationCode()) {
-        $("#confirmation_row").hide();
-    }
+          if (Settings.keepMasterPasswordHash() || Settings.useVerificationCode()) {
+              $("#confirmation_row").hide();
+          }
 
-    if (!Settings.useVerificationCode()) {
-        $("#verification_row").hide();
-    }
+          if (!Settings.useVerificationCode()) {
+              $("#verification_row").hide();
+          }
 
-    if (!Settings.shouldFillUsername()) {
-        $("#username_row").hide();
-    }
+          if (!Settings.shouldFillUsername()) {
+              $("#username_row").hide();
+          }
 
-    if (!Settings.shouldShowStrength()) {
-        $("#strength_row").hide();
-    }
+          if (!Settings.shouldShowStrength()) {
+              $("#strength_row").hide();
+          }
 
-    var tabPromise = browser.tabs.query({ "active": true, "currentWindow": true, "windowType": "normal" });
-    
-    tabPromise.then( function(tabs) {
-        Settings.currentUrl = tabs[0].url || "";
-        init();
-    });
+          var tabPromise = browser.tabs.query({ "active": true, "currentWindow": true, "windowType": "normal" });
 
-    $(document.body).on("keydown", handleKeyPress);
-});
+          tabPromise.then( function(tabs) {
+              Settings.currentUrl = tabs[0].url || "";
+              init();
+          });
+
+          $(document.body).on("keydown", handleKeyPress);
+      });
+  });

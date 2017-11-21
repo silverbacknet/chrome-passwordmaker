@@ -1,7 +1,7 @@
 var password = "";
 
 function updateSyncedProfiles(data) {
-    localStorage.setItem("synced_profiles_keys", "");
+    browser.storage.local.set({synced_profiles_keys: ""});
     if (data.synced_profiles === undefined) {
         data.synced_profiles = "";
     } else if (typeof (data.synced_profiles) !== "string") {
@@ -9,10 +9,10 @@ function updateSyncedProfiles(data) {
         data.synced_profiles.forEach(function(key) {
             profiles += data[key];
         });
-        localStorage.setItem("synced_profiles_keys", data.synced_profiles.join());
+        browser.storage.local.set({synced_profiles_keys: data.synced_profiles.join()});
         data.synced_profiles = profiles;
     }
-    localStorage.setItem("synced_profiles", data.synced_profiles);
+    browser.storage.local.set({synced_profiles: data.synced_profiles});
 }
 
 var getPromise = browser.storage.sync.get();
@@ -20,9 +20,8 @@ var getPromise = browser.storage.sync.get();
 getPromise.then(function(data) {
     updateSyncedProfiles(data);
     if (data.sync_profiles_password !== undefined) {
-        localStorage.setItem("sync_profiles_password", data.sync_profiles_password);
-    }
-});
+        browser.storage.local.set({sync_profiles_password: data.sync_profiles_password});
+      }});
 
 browser.storage.onChanged.addListener(function(changes, namespace) {
     if (namespace !== "sync") {
@@ -36,7 +35,7 @@ browser.storage.onChanged.addListener(function(changes, namespace) {
         updateSyncedProfiles(flattened);
     }
     if (changes.sync_profiles_password !== undefined) {
-        localStorage.setItem("sync_profiles_password", changes.sync_profiles_password.newValue || "");
+        browser.storage.local.set({sync_profiles_password: changes.sync_profiles_password.newValue || ""});
     }
 });
 

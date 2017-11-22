@@ -3,6 +3,7 @@ var Settings = {
     profiles: [],
     storeLocation:  "memory",
     syncDataAvailable: false,
+    syncPasswordOk: false
 };
 
 var CHARSET_OPTIONS = [
@@ -49,7 +50,9 @@ Settings.initFromStorage = function(item) {
   localStorage.removeItem("master_password_hash")
   Settings.synced_profiles_keys = item["synced_profiles_keys"] || localStorage.getItem("synced_profiles_keys") || "";
   localStorage.removeItem("synced_profiles_keys");
-  console.log("Settings initialized")
+  Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
+  Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
+  console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
 };
 
 Settings.getDefault = function(name, item) {
@@ -98,6 +101,7 @@ Settings.deleteProfile = function(id) {
 };
 
 Settings.loadProfilesFromString = function(profiles) {
+    console.log(`loadProfileFromString ${profiles}`)
     Settings.profiles = [];
     JSON.parse(profiles).forEach(function(item) {
         Settings.profiles.push($.extend(Object.create(Profile), item));
@@ -105,20 +109,42 @@ Settings.loadProfilesFromString = function(profiles) {
     console.log(`Profiles from string: ${Settings.profiles.length}`)
 };
 
+Settings.createDefaultProfiles = function() {
+    var normal = Object.create(Profile);
+    var alpha = Object.create(Profile);
+    alpha.id = 2;
+    alpha.title = "Alphanumeric";
+    alpha.selectedCharset = CHARSET_OPTIONS[1];
+    Settings.profiles = [normal, alpha];
+    Settings.saveProfiles();
+}
+
 Settings.loadLocalProfiles = function(thiscallback) {
     var promise = browser.storage.local.get("profiles");
     promise.then(
       function(data) {
-        if (data.hasOwnProperty('profiles')) {
-          Settings.loadProfilesFromString(data.profiles);
+        if (data.hasOwnProperty("profiles")) {
+            Settings.loadProfilesFromString(data.profiles);
         } else {
-          var normal = Object.create(Profile);
-          var alpha = Object.create(Profile);
-          alpha.id = 2;
-          alpha.title = "Alphanumeric";
-          alpha.selectedCharset = CHARSET_OPTIONS[1];
-          Settings.profiles = [normal, alpha];
-          Settings.saveProfiles();
+            Settings.createDefaultProfiles()
+        }
+        thiscallback();
+      },
+      function(error) {
+        console.log(`Error: ${error} `)
+      }
+    );
+};
+
+Settings.loadSyncedProfiles = function(thiscallback) {
+    var promise = browser.storage.local.get("synced_profiles");
+    promise.then(
+      function(data) {
+        if (data.hasOwnProperty("synced_profiles")) {
+            var plainData = Settings.decrypt(Settings.sync_profiles_password, data.synced_profiles);
+            Settings.loadProfilesFromString(plainData);
+        } else {
+            Settings.createDefaultProfiles()
         }
         thiscallback();
       },
@@ -129,22 +155,11 @@ Settings.loadLocalProfiles = function(thiscallback) {
 };
 
 Settings.loadProfiles = function(callback) {
-    Settings.loadLocalProfiles(callback);
-    var getPromise = browser.storage.local.get("synced_profiles");
-    getPromise.then(
-        //something in sync data
-        function(data) {
-          var profiles = Settings.decrypt(Settings.sync_profiles_password, data.synced_profiles);
-          if (profiles.length !== 0) {
-              if (Settings.shouldSyncProfiles()) {
-                  Settings.loadProfilesFromString(profiles);
-              }
-          }
-        },
-        //error accessing sync data
-        function(error) {
-            console.log(`Error: ${error}`)
-    });
+    if (Settings.sync_profiles && Settings.syncPasswordOk && Settings.syncDataAvailable) {
+        Settings.loadSyncedProfiles(callback);
+    } else {
+        Settings.loadLocalProfiles(callback);
+    }
 };
 
 Settings.saveSyncedProfiles = function(data) {
@@ -163,7 +178,7 @@ Settings.saveProfiles = function() {
     }
     var stringified = JSON.stringify(Settings.profiles);
     browser.storage.local.set({profiles: stringified});
-    if (Settings.shouldSyncProfiles() && (!Settings.syncDataAvailable || Settings.syncPasswordOk())) {
+    if (Settings.shouldSyncProfiles() && (!Settings.syncDataAvailable || Settings.syncPasswordOk)) {
         Settings.saveSyncedProfiles(Settings.encrypt(Settings.sync_profiles_password, stringified));
     }
 };
@@ -263,35 +278,41 @@ Settings.stopSync = function() {
     browser.storage.local.set({sync_profiles: false});
     Settings.sync_profiles = false;
     browser.storage.local.remove("sync_profiles_password");
+    Settings.syncPasswordOk = false;
     Settings.loadLocalProfiles(function(){});
 };
 
-Settings.startSyncWith = function(password) {
+Settings.startSyncWith = function(password, onSuccess, onFailure) {
     console.log("startsyncwith");
     var syncPassHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password));
     if (Settings.syncDataAvailable) {
-        var profiles = Settings.decrypt(syncPassHash, Settings.synced_profiles);
-        if (profiles.length !== 0) {
-            Settings.loadProfilesFromString(profiles);
-            return syncPassHash;
-        }
+        browser.storage.sync.get("synced_profiles").then(
+            function(data) {
+                profiles = Settings.decrypt(syncPassHash, data.synced_profiles);
+                if (profiles.length !== 0) {
+                    Settings.loadProfilesFromString(profiles);
+                    Settings.sync_profiles = true;
+                    browser.storage.local.set({sync_profiles: true});
+                    Settings.sync_profiles_password = syncPassHash;
+                    browser.storage.local.set({sync_profiles_password: syncPassHash});
+                    onSuccess();
+                } else {
+                    onFailure();
+                }
+            }
+        );
     } else {
         console.log("Settings sync");
         browser.storage.local.set({sync_profiles_password: syncPassHash});
         Settings.sync_profiles_password = syncPassHash;
         Settings.saveSyncedProfiles(Settings.encrypt(syncPassHash, JSON.stringify(Settings.profiles)));
-        return syncPassHash;
-    }
-    return false;
-};
-
-Settings.syncPasswordOk = function() {
-    var profiles = Settings.decrypt(Settings.sync_profiles_password, Settings.synced_profiles);
-    console.log(`syncPasswordOk ${profiles.length}`)
-    if (profiles.length !== 0) {
-        return true;
-    } else {
-        return false;
+        Settings.syncDataAvailable = true;
+        Settings.syncPasswordOk = true;
+        Settings.sync_profiles = true;
+        browser.storage.local.set({sync_profiles: true});
+        Settings.sync_profiles_password = syncPassHash;
+        browser.storage.local.set({sync_profiles_password: syncPassHash});
+        onSuccess();
     }
 };
 

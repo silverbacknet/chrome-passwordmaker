@@ -155,13 +155,16 @@ function showOptions() {
         function(data) {
             if(Object.keys(data).length>0) {
                 Settings.syncDataAvailable = true;
+                Settings.syncPasswordOk = Boolean(Settings.decrypt(data.synced_settings))
             } else {
                 Settings.syncDataAvailable = false;
+                Settings.syncPasswordOk = false;
             }
         },
         //error accessing sync data
         function() {
             Settings.syncDataAvailable = false;
+            Settings.syncPasswordOk = false;
     });
 
     $("#store_location").val(Settings.storeLocation);
@@ -258,21 +261,14 @@ function setSyncPassword() {
         return;
     }
 
-    var result = Settings.startSyncWith($("#syncProfilesPassword").val());
-    console.log(`StartSyncWith result ${result}`)
-    if (result) {
-        Settings.sync_profiles = true;
-        browser.storage.local.set({sync_profiles: true});
-        Settings.sync_profiles_password = result;
-        browser.storage.local.set({sync_profiles_password: result});
-        Settings.syncDataAvailable = true;
+    Settings.startSyncWith($("#syncProfilesPassword").val(), function(){
         $("#syncProfilesPassword").val("");
         updateSyncProfiles();
-        updateProfileList();
-    } else {
-        alert("Wrong password. Please specify the password you used when initially syncing your data");
-    }
-}
+        updateProfileList();       
+    }, function(){
+        alert("Wrong password. Please specify the password you used when initially syncing your data");       
+    });
+ }
 
 function clearSyncData() {
     var clearPromise = browser.storage.sync.clear()
@@ -304,7 +300,7 @@ function updateSyncProfiles() {
     $("#set_sync_password, #clear_sync_data").addClass("hidden");
 
     if ($("#syncProfiles").prop("checked")) {
-        if (Settings.syncPasswordOk()) {
+        if (Settings.syncPasswordOk) {
             $("#sync_password_set").show();
             $("#clear_sync_data").removeClass("hidden");
         } else if (Settings.syncDataAvailable) {

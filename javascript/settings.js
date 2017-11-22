@@ -278,12 +278,15 @@ Settings.stopSync = function() {
     browser.storage.local.set({sync_profiles: false});
     Settings.sync_profiles = false;
     browser.storage.local.remove("sync_profiles_password");
+    browser.storage.local.remove("synced_profiles");
     Settings.syncPasswordOk = false;
+    Settings.syncDataAvailable = false;
+    Settings.sync_profiles_password = "";
     Settings.loadLocalProfiles(function(){});
 };
 
 Settings.startSyncWith = function(password, onSuccess, onFailure) {
-    console.log("startsyncwith");
+    console.log(`startsyncwith syncDataAvailable ${Settings.syncDataAvailable}`);
     var syncPassHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password));
     if (Settings.syncDataAvailable) {
         browser.storage.sync.get("synced_profiles").then(

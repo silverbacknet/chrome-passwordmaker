@@ -155,7 +155,7 @@ function showOptions() {
         function(data) {
             if(Object.keys(data).length>0) {
                 Settings.syncDataAvailable = true;
-                Settings.syncPasswordOk = Boolean(Settings.decrypt(data.synced_settings))
+                Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, data.synced_profiles));
             } else {
                 Settings.syncDataAvailable = false;
                 Settings.syncPasswordOk = false;
@@ -298,7 +298,7 @@ function clearSyncData() {
 function updateSyncProfiles() {
     $("#sync_profiles_row, #no_sync_password, #sync_data_exists, #sync_password_set").hide();
     $("#set_sync_password, #clear_sync_data").addClass("hidden");
-
+    console.log(`updateSyncProfiles syncPasswordOk ${Settings.syncPasswordOk}, synDataAvailable ${Settings.syncDataAvailable}`);
     if ($("#syncProfiles").prop("checked")) {
         if (Settings.syncPasswordOk) {
             $("#sync_password_set").show();

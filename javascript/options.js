@@ -149,11 +149,11 @@ function copyRdfExport() {
 }
 
 function showOptions() {
-    var setPromise = browser.storage.sync.get();
+    var setPromise = browser.storage.sync.get("synced_profiles");
     setPromise.then(
         //something in sync data
         function(data) {
-            if(data){
+            if(Object.keys(data).length>0) {
                 Settings.syncDataAvailable = true;
             } else {
                 Settings.syncDataAvailable = false;
@@ -259,6 +259,7 @@ function setSyncPassword() {
     }
 
     var result = Settings.startSyncWith($("#syncProfilesPassword").val());
+    console.log(`StartSyncWith result ${result}`)
     if (result) {
         Settings.sync_profiles = true;
         browser.storage.local.set({sync_profiles: true});
@@ -280,13 +281,15 @@ function clearSyncData() {
         //success clearing sync
         function() {
             Settings.sync_profiles = false;
-            Settings.syncDataAvailable = false;
             browser.storage.local.remove("synced_profiles");
-            browser.storage.local.remove("synced_profiles_keys")
+            browser.storage.local.remove("synced_profiles_keys");
             browser.storage.local.remove("sync_profiles_password");
+            Settings.sync_profiles_password = "";
+            Settings.syncDataAvailable = false;
             Settings.loadLocalProfiles(function(){
               updateSyncProfiles();
-              updateProfileList();            
+              updateProfileList();   
+              Settings.syncDataAvailable = false;             
             });
         },
         //error clearing sync

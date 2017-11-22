@@ -47,9 +47,7 @@ Settings.initFromStorage = function(item) {
   localStorage.removeItem("password_crypt")
   Settings.master_password_hash = item["master_password_hash"] || localStorage.getItem("master_password_hash") || "";
   localStorage.removeItem("master_password_hash")
-  Settings.synced_profiles = item["synced_profiles"] || localStorage.getItem("sync_profiles") || "";
-  localStorage.removeItem("synced_profiles");
-  Settings.synced_profiles = item["synced_profiles_keys"] || localStorage.getItem("synced_profiles_keys") || "";
+  Settings.synced_profiles_keys = item["synced_profiles_keys"] || localStorage.getItem("synced_profiles_keys") || "";
   localStorage.removeItem("synced_profiles_keys");
   console.log("Settings initialized")
 };
@@ -150,11 +148,9 @@ Settings.loadProfiles = function(callback) {
 };
 
 Settings.saveSyncedProfiles = function(data) {
-    //var oldKeys = browser.storage.local.get("synced_profiles_keys");
-    var output = {};
-
-    output.synced_profiles = data;
-    var setPromise = browser.storage.sync.set(output);
+    var setPromise = browser.storage.sync.set({synced_profiles: data});
+    browser.storage.local.set({synced_profiles: data});
+    console.log(`sync data ${data}`)
 
     setPromise.then(null, function() {
         alert("Could not sync data : " + browser.runtime.lastError);
@@ -265,11 +261,13 @@ Settings.shouldShowStrength = function() {
 
 Settings.stopSync = function() {
     browser.storage.local.set({sync_profiles: false});
-    browser.storage.local.remove("sync_profiles_password")
+    Settings.sync_profiles = false;
+    browser.storage.local.remove("sync_profiles_password");
     Settings.loadLocalProfiles(function(){});
 };
 
 Settings.startSyncWith = function(password) {
+    console.log("startsyncwith");
     var syncPassHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password));
     if (Settings.syncDataAvailable) {
         var profiles = Settings.decrypt(syncPassHash, Settings.synced_profiles);
@@ -278,6 +276,7 @@ Settings.startSyncWith = function(password) {
             return syncPassHash;
         }
     } else {
+        console.log("Settings sync");
         browser.storage.local.set({sync_profiles_password: syncPassHash});
         Settings.sync_profiles_password = syncPassHash;
         Settings.saveSyncedProfiles(Settings.encrypt(syncPassHash, JSON.stringify(Settings.profiles)));
@@ -287,8 +286,8 @@ Settings.startSyncWith = function(password) {
 };
 
 Settings.syncPasswordOk = function() {
-    var syncHash = Settings.sync_profiles_password || "";
-    var profiles = Settings.decrypt(syncHash, Settings.synced_profiles);
+    var profiles = Settings.decrypt(Settings.sync_profiles_password, Settings.synced_profiles);
+    console.log(`syncPasswordOk ${profiles.length}`)
     if (profiles.length !== 0) {
         return true;
     } else {

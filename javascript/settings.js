@@ -109,6 +109,32 @@ Settings.loadProfilesFromString = function(profiles) {
     console.log(`Profiles from string: ${Settings.profiles.length}`)
 };
 
+Settings.mergeProfilesFromString = function(profiles) {
+    console.log("Merge profiles from string");
+    incoming_profiles = [];
+    JSON.parse(profiles).forEach(function(item) {
+        incoming_profiles.push($.extend(Object.create(Profile), item));
+    });
+    // merge into current profiles
+    var existing = {};
+    var current_profile_length = Settings.profiles.length;
+    for (var i=0; i<current_profile_length; i++) {
+        existing[Settings.profiles[i].title] = i;
+    }
+    console.log(`Existing titles ${existing}`);
+    for (var j=0; j<incoming_profiles.length; j++) {
+        if (!(incoming_profiles[j].title in existing)) {
+            Settings.profiles.push(incoming_profiles[j]);
+            Settings.profiles[current_profile_length].id = current_profile_length + 1;
+            current_profile_length++;
+        } else {
+            index = existing[incoming_profiles[j].title];
+            Settings.profiles[index] = incoming_profiles[j];
+            Settings.profiles[index].id = index;
+        }
+    }
+}
+
 Settings.createDefaultProfiles = function() {
     var normal = Object.create(Profile);
     var alpha = Object.create(Profile);
@@ -180,6 +206,7 @@ Settings.saveProfiles = function() {
     browser.storage.local.set({profiles: stringified});
     if (Settings.shouldSyncProfiles() && (!Settings.syncDataAvailable || Settings.syncPasswordOk)) {
         Settings.saveSyncedProfiles(Settings.encrypt(Settings.sync_profiles_password, stringified));
+        console.log("Saved synced profiles");
     }
 };
 
@@ -293,12 +320,14 @@ Settings.startSyncWith = function(password, onSuccess, onFailure) {
             function(data) {
                 profiles = Settings.decrypt(syncPassHash, data.synced_profiles);
                 if (profiles.length !== 0) {
-                    Settings.loadProfilesFromString(profiles);
+                    Settings.mergeProfilesFromString(profiles);
                     Settings.sync_profiles = true;
                     browser.storage.local.set({sync_profiles: true});
                     Settings.sync_profiles_password = syncPassHash;
                     browser.storage.local.set({sync_profiles_password: syncPassHash});
+                    Settings.syncPasswordOk = true;
                     onSuccess();
+                    Settings.saveProfiles()
                 } else {
                     onFailure();
                 }

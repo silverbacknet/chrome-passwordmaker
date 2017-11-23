@@ -31,5 +31,5 @@
 	"page": "html/options.html"
   },
   "permissions": ["activeTab", "storage", "alarms", "clipboardWrite", "downloads"],
-  "version": "0.8.5.3beta1"
+  "version": "0.8.5.3beta2"
 }

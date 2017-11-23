@@ -241,7 +241,7 @@ function init() {
 
         $("#password").val(pass);
         $("#confirmation").val(pass);
-        $("#store_location").val(Settings.storeLocation);
+        $("#store_location").val(Settings.store_location);
 
         for (var i = 0; i < Settings.profiles.length; i++) {
             $("#profile").append(new Option(Settings.profiles[i].title, Settings.profiles[i].id));

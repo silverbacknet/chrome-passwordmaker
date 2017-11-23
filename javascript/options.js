@@ -167,7 +167,7 @@ function showOptions() {
             Settings.syncPasswordOk = false;
     });
 
-    $("#store_location").val(Settings.storeLocation);
+    $("#store_location").val(Settings.store_location);
     $("#expirePasswordMinutes").val(Settings.expire_password_minutes || 5);
     updateStyle($("#master_password_row"), "hidden", !Settings.keepMasterPasswordHash());
     updateExpireRow();
@@ -399,7 +399,7 @@ function sanitizeExpireTime(newExpireTime) {
 }
 
 function updateExpireRow() {
-    var shouldExpire = Settings.storeLocation === "memory_expire";
+    var shouldExpire = Settings.store_location === "memory_expire";
     var oldExpireTime = Settings.expire_password_minutes || 5;
     var newExpireTime = $("#expirePasswordMinutes").val();
     if (shouldExpire) {

@@ -78,7 +78,7 @@ QUnit.test("save settings", function(assert) {
     Settings.setStoreLocation("memory");
 
     assert.equal(Settings.shouldHidePassword(), true);
-    assert.equal(Settings.storeLocation, "memory");
+    assert.equal(Settings.store_location, "memory");
 });
 
 QUnit.module("rdf export", {

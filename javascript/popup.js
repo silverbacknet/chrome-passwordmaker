@@ -260,7 +260,7 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    console.log(`popup: Profile number ${Settings.profiles.length}`);
+    ///console.log(`popup: Profile number ${Settings.profiles.length}`);
     Settings.loadProfiles(function() {
           $("#password, #confirmation").on("keyup", Settings.setPassword);
           $("input").on("input", delayedUpdate);

@@ -1,3 +1,8 @@
+0.8.5.3beta1
+
+* rewrite to use persistent storage even if firefox is set to clear cookies and website stored data
+* partial rewrite of synchronization code
+
 0.8.5.2 - 2017-10-24
 
 * Synchronization on firefox and bugfixes contributed by bob0the0mighty

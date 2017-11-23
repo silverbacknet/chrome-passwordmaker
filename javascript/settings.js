@@ -52,7 +52,7 @@ Settings.initFromStorage = function(item) {
   localStorage.removeItem("synced_profiles_keys");
   Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
   Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
-  console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
+  //console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
 };
 
 Settings.getDefault = function(name, item) {
@@ -101,16 +101,16 @@ Settings.deleteProfile = function(id) {
 };
 
 Settings.loadProfilesFromString = function(profiles) {
-    console.log(`loadProfileFromString ${profiles}`)
+    //console.log(`loadProfileFromString ${profiles}`)
     Settings.profiles = [];
     JSON.parse(profiles).forEach(function(item) {
         Settings.profiles.push($.extend(Object.create(Profile), item));
     });
-    console.log(`Profiles from string: ${Settings.profiles.length}`)
+    //console.log(`Profiles from string: ${Settings.profiles.length}`)
 };
 
 Settings.mergeProfilesFromString = function(profiles) {
-    console.log("Merge profiles from string");
+    //console.log("Merge profiles from string");
     incoming_profiles = [];
     JSON.parse(profiles).forEach(function(item) {
         incoming_profiles.push($.extend(Object.create(Profile), item));
@@ -121,7 +121,7 @@ Settings.mergeProfilesFromString = function(profiles) {
     for (var i=0; i<current_profile_length; i++) {
         existing[Settings.profiles[i].title] = i;
     }
-    console.log(`Existing titles ${existing}`);
+    //console.log(`Existing titles ${existing}`);
     for (var j=0; j<incoming_profiles.length; j++) {
         if (!(incoming_profiles[j].title in existing)) {
             Settings.profiles.push(incoming_profiles[j]);
@@ -191,7 +191,7 @@ Settings.loadProfiles = function(callback) {
 Settings.saveSyncedProfiles = function(data) {
     var setPromise = browser.storage.sync.set({synced_profiles: data});
     browser.storage.local.set({synced_profiles: data});
-    console.log(`sync data ${data}`)
+    //console.log(`sync data ${data}`)
 
     setPromise.then(null, function() {
         alert("Could not sync data : " + browser.runtime.lastError);
@@ -206,7 +206,7 @@ Settings.saveProfiles = function() {
     browser.storage.local.set({profiles: stringified});
     if (Settings.shouldSyncProfiles() && (!Settings.syncDataAvailable || Settings.syncPasswordOk)) {
         Settings.saveSyncedProfiles(Settings.encrypt(Settings.sync_profiles_password, stringified));
-        console.log("Saved synced profiles");
+        //console.log("Saved synced profiles");
     }
 };
 
@@ -313,7 +313,7 @@ Settings.stopSync = function() {
 };
 
 Settings.startSyncWith = function(password, onSuccess, onFailure) {
-    console.log(`startsyncwith syncDataAvailable ${Settings.syncDataAvailable}`);
+    //console.log(`startsyncwith syncDataAvailable ${Settings.syncDataAvailable}`);
     var syncPassHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password));
     if (Settings.syncDataAvailable) {
         browser.storage.sync.get("synced_profiles").then(
@@ -334,7 +334,7 @@ Settings.startSyncWith = function(password, onSuccess, onFailure) {
             }
         );
     } else {
-        console.log("Settings sync");
+        // console.log("Settings sync");
         browser.storage.local.set({sync_profiles_password: syncPassHash});
         Settings.sync_profiles_password = syncPassHash;
         Settings.saveSyncedProfiles(Settings.encrypt(syncPassHash, JSON.stringify(Settings.profiles)));

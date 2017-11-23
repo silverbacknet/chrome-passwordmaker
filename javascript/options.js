@@ -249,7 +249,7 @@ function editProfile(event) {
 
 function updateProfileList() {
     $("#profile_list").empty();
-    console.log(`Number profiles: ${Settings.profiles.length}`)
+    //console.log(`Number profiles: ${Settings.profiles.length}`)
     for (var i = 0; i < Settings.profiles.length; i++) {
         $("#profile_list").append("<li><span id='profile_" + Settings.profiles[i].id + "' class='link'>" + Settings.profiles[i].title + "</span></li>");
     }
@@ -282,10 +282,11 @@ function clearSyncData() {
             browser.storage.local.remove("sync_profiles_password");
             Settings.sync_profiles_password = "";
             Settings.syncDataAvailable = false;
+            Settings.syncPasswordOk = false;
             Settings.loadLocalProfiles(function(){
-              updateSyncProfiles();
-              updateProfileList();   
-              Settings.syncDataAvailable = false;             
+                Settings.syncDataAvailable = false;             
+                updateSyncProfiles();
+                updateProfileList();   
             });
         },
         //error clearing sync
@@ -298,7 +299,7 @@ function clearSyncData() {
 function updateSyncProfiles() {
     $("#sync_profiles_row, #no_sync_password, #sync_data_exists, #sync_password_set").hide();
     $("#set_sync_password, #clear_sync_data").addClass("hidden");
-    console.log(`updateSyncProfiles syncPasswordOk ${Settings.syncPasswordOk}, synDataAvailable ${Settings.syncDataAvailable}`);
+    //console.log(`updateSyncProfiles syncPasswordOk ${Settings.syncPasswordOk}, synDataAvailable ${Settings.syncDataAvailable}`);
     if ($("#syncProfiles").prop("checked")) {
         if (Settings.syncPasswordOk) {
             $("#sync_password_set").show();
@@ -493,7 +494,7 @@ function checkPassStrength() {
 
 function thisbottomHalf() {
     updateProfileList();
-    console.log(`Listener Profiles: ${Settings.profiles}`);
+    //console.log(`Listener Profiles: ${Settings.profiles}`);
     setCurrentProfile(Settings.profiles[0]);
 
     $("#hidePassword").prop("checked", Settings.shouldHidePassword());

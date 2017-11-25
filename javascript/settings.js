@@ -43,8 +43,6 @@ Settings.initFromStorage = function(item) {
   localStorage.removeItem("hide_storage_location")
   Settings.disable_password_saving = item["disable_password_saving"] || (localStorage.getItem("disable_password_saving")=="true") || false;
   localStorage.removeItem("disable_password_saving")
-  Settings.show_generated_password = item["show_generated_password"] || (localStorage.getItem("show_generated_password")=="true") || false;
-  localStorage.removeItem("show_generated_password")
   Settings.password_key = item["password_key"] || localStorage.getItem("password_key") || "";
   localStorage.removeItem("password_key")
   Settings.expire_password_minutes = item["expire_password_minutes"] || parseInt(localStorage.getItem("expire_password_minutes")) || 5;
@@ -185,7 +183,7 @@ Settings.loadSyncedProfiles = function(thiscallback) {
     );
 };
 
-Settings.loadProfiles = function(callback) {
+Settings.loadProfiles = function(callback=function(){}) {
     if (Settings.sync_profiles && Settings.syncPasswordOk && Settings.syncDataAvailable) {
         Settings.loadSyncedProfiles(callback);
     } else {

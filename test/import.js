@@ -4,7 +4,7 @@ QUnit.module("rdf import", {
     },
     afterEach: function() {
         Settings.profiles = [];
-        localStorage.clear();
+        browser.storage.local.clear();
     }
 });
 
@@ -63,38 +63,48 @@ QUnit.test("load default profile", function(assert) {
 });
 
 QUnit.test("save profiles", function(assert) {
+    var done = assert.async();
     var profiles = this.rdf_doc1.profiles;
 
     assert.equal(profiles.length, 2);
-    Settings.loadProfiles();
-    assert.equal(Settings.profiles.length, 2);
+    Settings.createDefaultProfiles();
+    Settings.loadProfiles(function(){
+        console.log(`test ${Settings.profiles.length}`);
+        assert.equal(Settings.profiles.length, 2);
 
-    RdfImporter.saveProfiles(profiles);
-    assert.equal(Settings.profiles.length, 4);
+        RdfImporter.saveProfiles(profiles);
+        assert.equal(Settings.profiles.length, 4);
+        done();
+    });
 });
 
 QUnit.test("save settings", function(assert) {
-    localStorage.setItem("show_generated_password", true);
     Settings.setStoreLocation("memory");
 
-    assert.equal(Settings.shouldHidePassword(), true);
     assert.equal(Settings.store_location, "memory");
 });
 
 QUnit.module("rdf export", {
-    beforeEach: function() {
-        Settings.loadProfiles();
-        this.rdf_doc1 = RdfImporter.loadDoc($("#rdf1").val());
-        RdfImporter.saveProfiles(this.rdf_doc1.profiles);
-        this.doc2 = RdfImporter.loadDoc(RdfImporter.dumpDoc());
+    beforeEach: function(assert) {
+        var done = assert.async();
+        var mod = this;
+        Settings.loadProfiles(function(){
+            mod.rdf_doc1 = RdfImporter.loadDoc($("#rdf1").val());
+            RdfImporter.saveProfiles(mod.rdf_doc1.profiles);
+            mod.doc2 = RdfImporter.loadDoc(RdfImporter.dumpDoc());
+            console.log(`doc2 profile ${mod.doc2.profiles.length}`);
+            done();
+        });
     },
     afterEach: function() {
         Settings.profiles = [];
-        localStorage.clear();
+        browser.storage.local.clear();
     }
 });
 
 QUnit.test("dump profile to rdf", function(assert) {
+    console.log("trying to use doc2");
+    assert.equal(this.doc2.profiles.length>3, true);
     var p = this.doc2.profiles[3];
 
     assert.equal(p.rdf_about, "rdf:#$CHROME4");
@@ -137,15 +147,19 @@ QUnit.test("dump default profile to rdf", function(assert) {
 });
 
 QUnit.module("password generation", {
-    beforeEach: function() {
-        Settings.loadProfiles();
-        this.p = Settings.profiles[0];
-        this.url = "passwordmaker.org";
-        this.pass = "PasswordMaker©€𤭢";
+    beforeEach: function(assert) {
+        var mod = this;
+        var done = assert.async();
+        Settings.loadProfiles(function(){
+            mod.p = Settings.profiles[0];
+            mod.url = "passwordmaker.org";
+            mod.pass = "PasswordMaker©€𤭢";
+            done();
+        });
     },
     afterEach: function() {
         Settings.profiles = [];
-        localStorage.clear();
+        browser.storage.local.clear();
     }
 });
 

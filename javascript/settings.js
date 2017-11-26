@@ -3,7 +3,12 @@ var Settings = {
     profiles: [],
     storeLocation:  "memory",
     syncDataAvailable: false,
-    syncPasswordOk: false
+    syncPasswordOk: false,
+    set last_used_profile_id(profile_id) { 
+        this._last_used_profile_id = profile_id;
+        browser.storage.local.set({last_used_profile_id: profile_id}); 
+    },
+    get last_used_profile_id() { return this._last_used_profile_id; }
 };
 
 var CHARSET_OPTIONS = [
@@ -53,6 +58,7 @@ Settings.initFromStorage = function(item) {
   localStorage.removeItem("master_password_hash")
   Settings.synced_profiles_keys = item["synced_profiles_keys"] || localStorage.getItem("synced_profiles_keys") || "";
   localStorage.removeItem("synced_profiles_keys");
+  Settings._last_used_profile_id = item["last_used_profile_id"];
   Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
   Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
   //console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);

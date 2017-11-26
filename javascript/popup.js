@@ -107,6 +107,7 @@ function updateStoreLocation() {
 function onProfileChanged() {
     updateProfileText();
     updateFields();
+    Settings.last_used_profile_id = Settings.getProfile($("#profile").val()).id;
 }
 
 function hideButtons() {
@@ -246,7 +247,7 @@ function init() {
         for (var i = 0; i < Settings.profiles.length; i++) {
             $("#profile").append(new Option(Settings.profiles[i].title, Settings.profiles[i].id));
         }
-        $("#profile").val(getAutoProfileIdForUrl() || Settings.profiles[0].id);
+        $("#profile").val(getAutoProfileIdForUrl() || Settings.last_used_profile_id || Settings.profiles[0].id);
 
         updateProfileText();
         updateFields();

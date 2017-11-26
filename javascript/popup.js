@@ -122,7 +122,7 @@ function hideButtons() {
 function showButtons() {
     $("#copypassword").removeClass("hidden");
     // Don't run executeScript() on built-in chrome:// pages since it isn't allowed anyway
-    if (!(/^chrome|^opera/i).test(Settings.currentUrl)) {
+    if (!(/^chrome|^opera|^about/i).test(Settings.currentUrl)) {
         var scriptPromise = browser.tabs.executeScript({
             "allFrames": true,
             "code": "var fields = document.getElementsByTagName('input'), fieldCount = 0;" +

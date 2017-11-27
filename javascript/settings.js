@@ -9,6 +9,15 @@ var Settings = {
         browser.storage.local.set({last_used_profile_id: profile_id}); 
     },
     get last_used_profile_id() { return this._last_used_profile_id; },
+    set remember_site_profile(remember) {
+        this._remember_site_profile = remember;
+        browser.storage.local.set({remember_site_profile: remember}); 
+        if (!remember) {
+            last_used_for_site: new Map();
+            browser.storage.local.clear("remember_site_profile");
+        }
+    },
+    get remember_site_profile() { return this._remember_site_profile; },
     last_used_for_site: new Map()
 };
 
@@ -63,12 +72,15 @@ Settings.initFromStorage = function(item) {
   Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
   Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
   Settings.last_used_for_site = item["last_used_for_site"] || Settings.last_used_for_site;
+  Settings.remember_site_profile = item["remember_site_profile"] || true;
   //console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
 };
 
 Settings.set_last_used_for_site = function(site, profile_title) {
-    Settings.last_used_for_site.set(site, profile_title);
-    browser.storage.local.set({last_used_for_site: Settings.last_used_for_site});
+    if (Settings._remember_site_profile) {
+        Settings.last_used_for_site.set(site, profile_title);
+        browser.storage.local.set({last_used_for_site: Settings.last_used_for_site});
+    }
 }
 
 Settings.getDefault = function(name, item) {

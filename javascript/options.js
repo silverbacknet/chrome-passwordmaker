@@ -368,6 +368,10 @@ function updatefillUsername() {
     browser.storage.local.set({fill_username: $("#fillUsername").prop("checked") });
 }
 
+function updateRememberSiteProfile() {
+    Settings.remember_site_profile = $("#rememberSiteProfile").prop("checked");
+}
+
 function updateHideStoreLocation() {
     browser.storage.local.set({hide_storage_location: $("#hideStorageLocation").prop("checked")});
 }
@@ -502,6 +506,7 @@ function thisbottomHalf() {
     $("#keepMasterPasswordHash").prop("checked", Settings.keepMasterPasswordHash());
     $("#useVerificationCode").prop("checked", Settings.useVerificationCode());
     $("#fillUsername").prop("checked", Settings.shouldFillUsername());
+    $("#rememberSiteProfile").prop("checked", Settings.remember_site_profile);
     $("#hideStorageLocation").prop("checked", Settings.hideStoreLocationInPopup());
     $("#showPasswordStrength").prop("checked", Settings.shouldShowStrength());
     $("#syncProfiles").prop("checked", Settings.shouldSyncProfiles());
@@ -539,6 +544,7 @@ function thisbottomHalf() {
     $("#masterPassword").on("keyup", updateMasterHash);
     $("#useVerificationCode").on("change", updateUseVerificationCode);
     $("#fillUsername").on("change", updatefillUsername);
+    $("#rememberSiteProfile").on("change", updateRememberSiteProfile);
     $("#hideStorageLocation").on("change", updateHideStoreLocation);
     $("#showPasswordStrength").on("change", updateShowStrength);
     $("#set_sync_password").on("click", setSyncPassword);

@@ -27,6 +27,15 @@ function getAutoProfileIdForUrl() {
     }
 }
 
+function getProfileIdFromTitle(text) {
+    for (var i = 0; i < Settings.profiles.length; i++) {
+        var profile = Settings.profiles[i];
+        if (profile.title == text) {
+            return profile.id;
+        }
+    }
+}
+
 function updateFields() {
     var password = $("#password").val();
     var confirmation = $("#confirmation").val();
@@ -67,6 +76,7 @@ function updateFields() {
     if (Settings.useVerificationCode()) {
         $("#verificationCode").val(getVerificationCode(password));
     }
+    return profile;
 }
 
 function delayedUpdate() {
@@ -145,7 +155,8 @@ function showButtons() {
 }
 
 function fillFields() {
-    updateFields();
+    profile = updateFields();
+    Seetings.set_last_used_for_site($("#usedtext").val(), profile.title);
     if (!(/^chrome|^opera/i).test(Settings.currentUrl)) {
         var scriptPromise = browser.tabs.executeScript({
             "allFrames": true,
@@ -188,7 +199,8 @@ function fillFields() {
 }
 
 function copyPassword() {
-    updateFields();
+    profile = updateFields();
+    Settings.set_last_used_for_site($("#usedtext").val(), profile.title);  
     browser.tabs.query({ "windowType": "popup" }, function() {
         $("#activatePassword").hide();
         $("#generated").show().get(0).select();
@@ -247,7 +259,8 @@ function init() {
         for (var i = 0; i < Settings.profiles.length; i++) {
             $("#profile").append(new Option(Settings.profiles[i].title, Settings.profiles[i].id));
         }
-        $("#profile").val(getAutoProfileIdForUrl() || Settings.last_used_profile_id || Settings.profiles[0].id);
+        var siteUrl = Profile.getUrl(Settings.currentUrl);
+        $("#profile").val(getAutoProfileIdForUrl() || getProfileIdFromTitle(Settings.last_used_for_site.get(siteUrl)) || Settings.last_used_profile_id || Settings.profiles[0].id);
 
         updateProfileText();
         updateFields();

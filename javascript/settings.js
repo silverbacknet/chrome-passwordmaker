@@ -8,7 +8,8 @@ var Settings = {
         this._last_used_profile_id = profile_id;
         browser.storage.local.set({last_used_profile_id: profile_id}); 
     },
-    get last_used_profile_id() { return this._last_used_profile_id; }
+    get last_used_profile_id() { return this._last_used_profile_id; },
+    last_used_for_site: new Map()
 };
 
 var CHARSET_OPTIONS = [
@@ -61,8 +62,14 @@ Settings.initFromStorage = function(item) {
   Settings._last_used_profile_id = item["last_used_profile_id"];
   Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
   Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
+  Settings.last_used_for_site = item["last_used_for_site"] || Settings.last_used_for_site;
   //console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
 };
+
+Settings.set_last_used_for_site = function(site, profile_title) {
+    Settings.last_used_for_site.set(site, profile_title);
+    browser.storage.local.set({last_used_for_site: Settings.last_used_for_site});
+}
 
 Settings.getDefault = function(name, item) {
     l = localStorage.getItem(name);

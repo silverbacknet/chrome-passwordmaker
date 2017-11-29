@@ -1,7 +1,8 @@
-0.8.5.3beta1
+0.8.5.3beta5
 
-* rewrite to use persistent storage even if firefox is set to clear cookies and website stored data
-* partial rewrite of synchronization code
+* rewrite to use persistent storage (browser.storage.local) instead of (localStorage) to maintain data even if firefox is set to clear cookies and website stored data.
+* partial rewrite of synchronization code.
+* remember last used profile by site
 
 0.8.5.2 - 2017-10-24
 

@@ -553,6 +553,6 @@ function thisbottomHalf() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  console.log(`options: Profile number ${Settings.profiles.length}`);
+  //console.log(`options: Profile number ${Settings.profiles.length}`);
     Settings.loadProfiles(thisbottomHalf);
 });

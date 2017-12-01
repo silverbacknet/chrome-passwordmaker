@@ -66,7 +66,11 @@ Settings.initFromStorage = function(item) {
   Settings._last_used_profile_id = item["last_used_profile_id"];
   Settings.syncDataAvailable = Boolean(item["synced_profiles"]) || false;
   Settings.syncPasswordOk = Boolean(Settings.decrypt(Settings.sync_profiles_password, item["synced_profiles"])) || false;
-  Settings.last_used_for_site = item["last_used_for_site"] || Settings.last_used_for_site;
+  Settings.last_used_for_site = item["last_used_for_site"] || new Map();
+  if (!(Settings.last_used_for_site instanceof Map)) {
+      Settings.last_used_for_site = new Map();
+      browser.storage.local.set({last_used_for_site: Settings.last_used_for_site});
+    }
   Settings.remember_site_profile = item["remember_site_profile"] || true;
   //console.log(`Settings initialized syncDataAvailable ${Settings.syncDataAvailable} syncPasswordOkay ${Settings.syncPasswordOk} syncProfilesPassword ${Settings.sync_profiles_password}`);
 };

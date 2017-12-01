@@ -156,7 +156,7 @@ function showButtons() {
 
 function fillFields() {
     profile = updateFields();
-    Seetings.set_last_used_for_site($("#usedtext").val(), profile.title);
+    Settings.set_last_used_for_site($("#usedtext").val(), profile.title);
     if (!(/^chrome|^opera/i).test(Settings.currentUrl)) {
         var scriptPromise = browser.tabs.executeScript({
             "allFrames": true,

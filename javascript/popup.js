@@ -260,7 +260,7 @@ function init() {
             $("#profile").append(new Option(Settings.profiles[i].title, Settings.profiles[i].id));
         }
         var siteUrl = Profile.getUrl(Settings.currentUrl);
-        $("#profile").val(getAutoProfileIdForUrl() || getProfileIdFromTitle(Settings.last_used_for_site.get(siteUrl)) || Settings.last_used_profile_id || Settings.profiles[0].id);
+        $("#profile").val(getAutoProfileIdForUrl() || getProfileIdFromTitle(Settings.last_used_for_site[siteUrl]) || Settings.last_used_profile_id || Settings.profiles[0].id);
 
         updateProfileText();
         updateFields();
